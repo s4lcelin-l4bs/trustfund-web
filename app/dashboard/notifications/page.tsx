@@ -16,61 +16,25 @@ interface Notif {
 }
 
 const mockNotifications: Notif[] = [
-  {
-    id: 'n1',
-    type: 'turn_announcement',
-    message: 'C\'est votre tour de recevoir le pool ce mois-ci !',
-    groupName: 'Epargne famille',
-    read: false,
-    createdAt: 'Il y a 2h',
-  },
-  {
-    id: 'n2',
-    type: 'payment_reminder',
-    message: 'Rappel : votre cotisation est due dans 3 jours.',
-    groupName: 'Tontine bureau IUT',
-    read: false,
-    createdAt: 'Il y a 5h',
-  },
-  {
-    id: 'n3',
-    type: 'payment_confirmed',
-    message: 'Votre cotisation de 50 000 FCFA a ete confirmee.',
-    groupName: 'Tontine bureau IUT',
-    read: true,
-    createdAt: 'Hier',
-  },
-  {
-    id: 'n4',
-    type: 'payment_confirmed',
-    message: 'Marie Tamba a cotise pour ce cycle.',
-    groupName: 'Tontine bureau IUT',
-    read: true,
-    createdAt: 'Il y a 2 jours',
-  },
-  {
-    id: 'n5',
-    type: 'payment_failed',
-    message: 'Le paiement de Paul Mbappe a echoue.',
-    groupName: 'Tontine amis campus',
-    read: true,
-    createdAt: 'Il y a 3 jours',
-  },
+  { id: 'n1', type: 'turn_announcement', message: 'C\'est votre tour de recevoir le pool ce mois-ci !', groupName: 'Epargne famille', read: false, createdAt: 'Il y a 2h' },
+  { id: 'n2', type: 'payment_reminder', message: 'Rappel : votre cotisation est due dans 3 jours.', groupName: 'Tontine bureau IUT', read: false, createdAt: 'Il y a 5h' },
+  { id: 'n3', type: 'payment_confirmed', message: 'Votre cotisation de 50 000 FCFA a ete confirmee.', groupName: 'Tontine bureau IUT', read: true, createdAt: 'Hier' },
+  { id: 'n4', type: 'payment_confirmed', message: 'Marie Tamba a cotise pour ce cycle.', groupName: 'Tontine bureau IUT', read: true, createdAt: 'Il y a 2 jours' },
+  { id: 'n5', type: 'payment_failed', message: 'Le paiement de Paul Mbappe a echoue.', groupName: 'Tontine amis campus', read: true, createdAt: 'Il y a 3 jours' },
 ]
 
 function getNotifConfig(type: NotifType) {
   const configs = {
-    payment_reminder: { emoji: '🔔', color: 'bg-orange-100', label: 'Rappel' },
-    turn_announcement: { emoji: '🎯', color: 'bg-emerald-100', label: 'Votre tour' },
-    payment_confirmed: { emoji: '✅', color: 'bg-blue-100', label: 'Confirme' },
-    payment_failed: { emoji: '❌', color: 'bg-red-100', label: 'Echec' },
+    payment_reminder:   { emoji: '🔔', color: 'bg-orange-100' },
+    turn_announcement:  { emoji: '🎯', color: 'bg-emerald-100' },
+    payment_confirmed:  { emoji: '✅', color: 'bg-blue-100' },
+    payment_failed:     { emoji: '❌', color: 'bg-red-100' },
   }
   return configs[type]
 }
 
 export default function NotificationsPage() {
   const [notifs, setNotifs] = useState<Notif[]>(mockNotifications)
-
   const unreadCount = notifs.filter((n) => !n.read).length
 
   function markAllRead() {
@@ -91,14 +55,13 @@ export default function NotificationsPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Notifications</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {unreadCount > 0 ? ${unreadCount} non lue : 'Tout est lu'}
+            {unreadCount > 0 ? (
+              <>{unreadCount} non lue{unreadCount > 1 ? 's' : ''}</>
+            ) : 'Tout est lu'}
           </p>
         </div>
         {unreadCount > 0 && (
-          <button
-            onClick={markAllRead}
-            className="text-sm text-emerald-600 font-medium hover:underline"
-          >
+          <button onClick={markAllRead} className="text-sm text-emerald-600 font-medium hover:underline">
             Tout marquer lu
           </button>
         )}
@@ -130,9 +93,7 @@ export default function NotificationsPage() {
                 onClick={() => markRead(notif.id)}
                 className={
                   'flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ' +
-                  (notif.read
-                    ? 'bg-white border-slate-100'
-                    : 'bg-emerald-50 border-emerald-100')
+                  (notif.read ? 'bg-white border-slate-100' : 'bg-emerald-50 border-emerald-100')
                 }
               >
                 <div className={config.color + ' w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg'}>
@@ -140,9 +101,7 @@ export default function NotificationsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-medium text-emerald-600">
-                      {notif.groupName}
-                    </span>
+                    <span className="text-xs font-medium text-emerald-600">{notif.groupName}</span>
                     {!notif.read && (
                       <span className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0" />
                     )}
