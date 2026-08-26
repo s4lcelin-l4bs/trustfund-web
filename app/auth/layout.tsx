@@ -1,13 +1,14 @@
-﻿'use client'
+'use client'
 
+import { Suspense } from 'react'
 import { motion } from 'framer-motion'
-import { fadeIn, fadeInUp, staggerContainer } from '@/lib/animations'
+import { fadeIn, fadeInUp, staggerContainer, springScaleIn } from '@/lib/animations'
+import { AuroraBackground } from '@/components/layout/AuroraBackground'
 
 const features = [
-  { icon: '🔒', text: 'Transactions securisees et verifiables' },
-  { icon: '📊', text: 'Registre transparent en temps reel' },
-  { icon: '🔔', text: 'Rappels automatiques de cotisation' },
-  { icon: '⚡', text: 'Versements instantanes via Mobile Money' },
+  { icon: '🔒', title: 'Sécurisé', text: 'Transactions vérifiables' },
+  { icon: '📊', title: 'Transparent', text: 'Registre en temps réel' },
+  { icon: '⚡', title: 'Rapide', text: 'Mobile Money instantané' },
 ]
 
 export default function AuthLayout({
@@ -16,79 +17,89 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen relative flex">
+      <AuroraBackground />
+
       <motion.div
         initial="hidden"
         animate="visible"
         variants={fadeIn}
-        className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 p-12 relative overflow-hidden"
+        className="hidden lg:flex flex-col justify-between w-1/2 p-12 relative z-10"
       >
-        <div className="absolute -top-20 -right-20 w-96 h-96 bg-white/5 rounded-full" />
-        <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-white/5 rounded-full" />
-
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          variants={springScaleIn}
+          className="flex items-center gap-3"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-              <span className="text-emerald-700 text-lg font-bold">T</span>
-            </div>
-            <span className="text-white text-xl font-bold">TrustFund</span>
+          <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <span className="text-white text-2xl font-black">T</span>
           </div>
+          <span className="text-3xl font-extrabold tracking-tight gradient-text">
+            TrustFund
+          </span>
         </motion.div>
 
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
-          className="space-y-8"
+          className="space-y-10 max-w-md"
         >
           <motion.div variants={fadeInUp}>
-            <h2 className="text-4xl font-bold text-white leading-tight">
+            <h2 className="text-5xl font-extrabold text-slate-900 dark:text-white leading-[1.1]">
               La tontine digitale
-              <span className="text-emerald-200"> 100% transparente</span>
+              <span className="block gradient-text mt-2">100% transparente.</span>
             </h2>
-            <p className="text-emerald-100 mt-3 text-base">
-              Fini le cahier papier. Gerez vos tontines en toute confiance.
+            <p className="text-slate-600 dark:text-slate-400 mt-6 text-lg font-medium">
+              Fini le cahier papier. Gérez vos tontines en toute confiance avec notre système automatisé.
             </p>
           </motion.div>
 
-          <motion.ul variants={staggerContainer} className="space-y-4">
+          <motion.div variants={staggerContainer} className="grid gap-4">
             {features.map((f, i) => (
-              <motion.li key={i} variants={fadeInUp} className="flex items-center gap-3">
-                <span className="text-xl">{f.icon}</span>
-                <span className="text-emerald-50 text-sm">{f.text}</span>
-              </motion.li>
+              <motion.div 
+                key={i} 
+                variants={fadeInUp} 
+                className="glass p-4 rounded-2xl flex items-center gap-4 hover:-translate-y-1 transition-transform"
+              >
+                <div className="w-12 h-12 rounded-xl bg-white/50 dark:bg-slate-800/50 flex items-center justify-center text-2xl shadow-sm">
+                  {f.icon}
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white">{f.title}</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{f.text}</p>
+                </div>
+              </motion.div>
             ))}
-          </motion.ul>
+          </motion.div>
         </motion.div>
 
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="text-emerald-300 text-xs"
+          className="text-slate-500 text-sm font-medium"
         >
-          2026 TrustFund · Douala, Cameroun
+          © 2026 TrustFund · Douala, Cameroun
         </motion.p>
       </motion.div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-sm">
+      <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
+        <div className="w-full max-w-md">
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex lg:hidden flex-col items-center mb-8"
+            className="flex lg:hidden flex-col items-center mb-10"
           >
-            <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center mb-2">
-              <span className="text-white text-xl font-bold">T</span>
+            <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20">
+              <span className="text-white text-2xl font-black">T</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900">TrustFund</h1>
-            <p className="text-sm text-slate-500">La tontine digitale transparente</p>
+            <h1 className="text-2xl font-extrabold gradient-text tracking-tight">TrustFund</h1>
+            <p className="text-sm font-medium text-slate-500 mt-1">La tontine digitale transparente</p>
           </motion.div>
-          {children}
+          
+          <Suspense fallback={<div className="glass-card p-12 flex justify-center"><div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" /></div>}>
+            {children}
+          </Suspense>
         </div>
       </div>
     </div>

@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { ToasterProvider } from '@/components/ToasterProvider'
+import { ThemeProvider } from '@/components/ThemeProvider'
+import { PageTransitionProvider } from '@/components/PageTransitionProvider'
 import './globals.css'
 
-const geist = Geist({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'TrustFund',
@@ -16,10 +18,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr">
-      <body className={geist.className}>
-        {children}
-        <ToasterProvider />
+    <html lang="fr" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider>
+          <PageTransitionProvider>
+            {children}
+            <ToasterProvider />
+          </PageTransitionProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

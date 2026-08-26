@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -14,6 +14,8 @@ import { fadeInUp, staggerContainer, shakeAnimation } from '@/lib/animations'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect')
   const { setUser } = useAuthStore()
 
   const [form, setForm] = useState<LoginFormData>({
@@ -33,7 +35,7 @@ export default function LoginPage() {
     const result = loginSchema.safeParse(form)
     if (!result.success) {
       const fieldErrors: Partial<LoginFormData> = {}
-      result.error.errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const field = err.path[0] as keyof LoginFormData
         fieldErrors[field] = err.message
       })
@@ -48,7 +50,7 @@ export default function LoginPage() {
       const { user, token } = await loginApi(form.phoneNumber, form.password)
       setUser(user, token)
       toast.success(`Bienvenue, ${user.fullName.split(' ')[0]} 👋`)
-      router.push('/dashboard/groups')
+      router.push(redirect || '/dashboard/organizations')
     } catch {
       toast.error('Numéro ou mot de passe incorrect.')
       setShake(true)
@@ -66,16 +68,16 @@ export default function LoginPage() {
         initial="hidden"
         animate="visible"
         variants={staggerContainer}
-        className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6"
+        className="glass-card p-8 sm:p-10"
       >
         <motion.div variants={fadeInUp}>
-          <h2 className="text-lg font-semibold text-slate-900">Connexion</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Content de vous revoir 👋
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Connexion</h2>
+          <p className="text-sm font-medium text-slate-500 mt-1">
+            Ravi de vous revoir 👋
           </p>
         </motion.div>
 
-        <motion.div variants={staggerContainer} className="flex flex-col gap-4 mt-5">
+        <motion.div variants={staggerContainer} className="flex flex-col gap-5 mt-8">
           <motion.div variants={fadeInUp}>
             <Input
               label="Numéro de téléphone"
@@ -85,6 +87,11 @@ export default function LoginPage() {
               value={form.phoneNumber}
               onChange={handleChange}
               error={errors.phoneNumber}
+              leftIcon={
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              }
             />
           </motion.div>
 
@@ -97,14 +104,20 @@ export default function LoginPage() {
               value={form.password}
               onChange={handleChange}
               error={errors.password}
+              leftIcon={
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              }
             />
           </motion.div>
 
-          <motion.div variants={fadeInUp}>
+          <motion.div variants={fadeInUp} className="pt-2">
             <Button
+              variant="glow"
               onClick={handleSubmit}
               isLoading={isLoading}
-              className="w-full"
+              className="w-full h-12 text-base"
             >
               Se connecter
             </Button>
@@ -113,10 +126,10 @@ export default function LoginPage() {
 
         <motion.p
           variants={fadeInUp}
-          className="text-sm text-center text-slate-500 mt-4"
+          className="text-sm font-medium text-center text-slate-500 mt-6"
         >
           Pas encore de compte ?{' '}
-          <Link href="/auth/register" className="text-emerald-600 font-medium hover:underline">
+          <Link href={redirect ? `/auth/register?redirect=${redirect}` : '/auth/register'} className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
             S'inscrire
           </Link>
         </motion.p>

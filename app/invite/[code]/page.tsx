@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
@@ -7,34 +7,13 @@ import { toast } from 'sonner'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Button } from '@/components/ui/Button'
 import { staggerContainer, fadeInUp, scaleIn } from '@/lib/animations'
-
-interface InviteInfo {
-  groupName: string
-  managerName: string
-  contributionAmount: number
-  frequency: string
-  memberCount: number
-  maxMembers: number
-}
-
-const mockInvite: InviteInfo = {
-  groupName: 'Tontine bureau IUT',
-  managerName: 'Marie Tamba',
-  contributionAmount: 50000,
-  frequency: 'Mensuelle',
-  memberCount: 12,
-  maxMembers: 15,
-}
-
-function formatAmount(n: number) {
-  return new Intl.NumberFormat('fr-FR').format(n)
-}
+import { joinOrganization, getInviteInfo, type InviteInfo } from '@/lib/api/invitations'
 
 export default function InvitePage() {
   const router = useRouter()
   const params = useParams()
   const code = params.code as string
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, _hasHydrated } = useAuthStore()
 
   const [invite, setInvite] = useState<InviteInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -42,30 +21,42 @@ export default function InvitePage() {
   const [isInvalid, setIsInvalid] = useState(false)
 
   useEffect(() => {
-    setTimeout(() => {
-      if (code === 'invalid') {
+    if (!_hasHydrated) return
+
+    if (!isAuthenticated) {
+      toast.info('Connectez-vous d\'abord pour rejoindre cette organisation')
+      router.push(`/auth/login?redirect=/invite/${code}`)
+      return
+    }
+
+    async function fetchInvite() {
+      try {
+        const data = await getInviteInfo(code)
+        setInvite(data)
+      } catch {
         setIsInvalid(true)
-      } else {
-        setInvite(mockInvite)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
-    }, 1000)
-  }, [code])
+    }
+    fetchInvite()
+  }, [code, isAuthenticated, _hasHydrated, router])
 
   async function handleJoin() {
     if (!isAuthenticated) {
-      toast.info('Connectez-vous d\'abord pour rejoindre ce groupe')
-      router.push('/auth/login')
+      toast.info('Connectez-vous d\'abord pour rejoindre cette organisation')
+      router.push(`/auth/login?redirect=/invite/${code}`)
       return
     }
 
     setIsJoining(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      toast.success('Vous avez rejoint le groupe avec succes !')
-      router.push('/dashboard/groups')
-    } catch {
-      toast.error('Erreur lors de la tentative de rejoindre le groupe.')
+      await joinOrganization(code)
+      toast.success('Vous avez rejoint l\'organisation avec succès !')
+      router.push('/dashboard/organizations')
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Erreur lors de la tentative de rejoindre l\'organisation.'
+      toast.error(msg)
     } finally {
       setIsJoining(false)
     }
@@ -93,20 +84,18 @@ export default function InvitePage() {
         >
           <span className="text-6xl mb-4 block">❌</span>
           <h2 className="text-xl font-bold text-slate-900 mb-2">
-            Lien invalide ou expire
+            Lien invalide ou expiré
           </h2>
           <p className="text-slate-500 text-sm mb-6">
-            Ce lien d\'invitation n\'existe pas ou a expire.
+            Ce lien d&apos;invitation n&apos;existe pas ou a expiré.
           </p>
-          <Button onClick={() => router.push('/dashboard/groups')}>
-            Retour a l\'accueil
+          <Button onClick={() => router.push('/dashboard/organizations')}>
+            Retour à l&apos;accueil
           </Button>
         </motion.div>
       </div>
     )
   }
-
-  const spotsLeft = invite.maxMembers - invite.memberCount
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-white flex items-center justify-center px-4 py-12">
@@ -138,54 +127,28 @@ export default function InvitePage() {
             {/* Header vert */}
             <div className="bg-gradient-to-br from-emerald-600 to-teal-700 p-6 text-center">
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <span className="text-3xl">🤝</span>
+                <span className="text-3xl">🏛️</span>
               </div>
-              <p className="text-emerald-100 text-sm mb-1">Vous etes invite a rejoindre</p>
-              <h1 className="text-xl font-bold text-white">{invite.groupName}</h1>
+              <p className="text-emerald-100 text-sm mb-1">Vous êtes invité(e) à rejoindre</p>
+              <h1 className="text-xl font-bold text-white">{invite.organizationName}</h1>
             </div>
 
-            {/* Infos du groupe */}
+            {/* Infos de l'organisation */}
             <div className="p-5 space-y-3">
+              {invite.description && (
+                <div className="py-2 border-b border-slate-50">
+                  <p className="text-sm text-slate-600 italic">{invite.description}</p>
+                </div>
+              )}
               <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                <span className="text-sm text-slate-500">Gere par</span>
-                <span className="text-sm font-medium text-slate-900">{invite.managerName}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                <span className="text-sm text-slate-500">Cotisation</span>
-                <span className="text-sm font-medium text-slate-900">
-                  {formatAmount(invite.contributionAmount)} FCFA / {invite.frequency === 'Mensuelle' ? 'mois' : 'sem.'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                <span className="text-sm text-slate-500">Membres</span>
-                <span className="text-sm font-medium text-slate-900">
-                  {invite.memberCount} / {invite.maxMembers}
-                </span>
+                <span className="text-sm text-slate-500">Devise</span>
+                <span className="text-sm font-medium text-slate-900">{invite.currency}</span>
               </div>
               <div className="flex justify-between items-center py-2">
-                <span className="text-sm text-slate-500">Places restantes</span>
-                <span className={
-                  'text-sm font-bold ' +
-                  (spotsLeft <= 2 ? 'text-orange-600' : 'text-emerald-600')
-                }>
-                  {spotsLeft} place{spotsLeft > 1 ? 's' : ''}
-                </span>
+                <span className="text-sm text-slate-500">Membres actuels</span>
+                <span className="text-sm font-medium text-slate-900">{invite.memberCount}</span>
               </div>
             </div>
-          </motion.div>
-
-          {/* Regle */}
-          <motion.div
-            variants={fadeInUp}
-            className="bg-amber-50 border border-amber-100 rounded-xl p-4"
-          >
-            <p className="text-xs text-amber-700 font-medium mb-1">⚠️ Avant de rejoindre</p>
-            <p className="text-xs text-amber-600">
-              En rejoignant ce groupe, vous vous engagez a cotiser{' '}
-              <strong>{formatAmount(invite.contributionAmount)} FCFA</strong> par{' '}
-              {invite.frequency === 'Mensuelle' ? 'mois' : 'semaine'}, sans interruption,
-              jusqu\'a la fin du cycle.
-            </p>
           </motion.div>
 
           {/* Boutons */}
@@ -196,13 +159,13 @@ export default function InvitePage() {
               className="w-full"
               size="lg"
             >
-              {isAuthenticated ? 'Rejoindre ce groupe' : 'Se connecter pour rejoindre'}
+              {isAuthenticated ? 'Rejoindre cette organisation' : 'Se connecter pour rejoindre'}
             </Button>
             <button
-              onClick={() => router.push('/dashboard/groups')}
+              onClick={() => router.push('/dashboard/organizations')}
               className="w-full text-sm text-slate-400 hover:text-slate-600 transition-colors py-2"
             >
-              Decliner l\'invitation
+              Décliner l&apos;invitation
             </button>
           </motion.div>
         </motion.div>

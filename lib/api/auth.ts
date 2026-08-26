@@ -1,4 +1,5 @@
-﻿import { User } from '@/types'
+import { User } from '@/types'
+import { apiClient } from './client'
 
 export interface AuthResponse {
   user: User
@@ -9,16 +10,11 @@ export async function loginApi(
   phoneNumber: string,
   password: string
 ): Promise<AuthResponse> {
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-  return {
-    user: {
-      id: 'mock-user-1',
-      phoneNumber,
-      fullName: 'Salcelin K.',
-      createdAt: new Date().toISOString(),
-    },
-    token: 'mock-token-abc123',
-  }
+  const { data } = await apiClient.post<{ success: boolean; data: AuthResponse }>('/auth/login', {
+    phoneNumber,
+    password,
+  })
+  return data.data
 }
 
 export async function registerApi(
@@ -26,14 +22,10 @@ export async function registerApi(
   phoneNumber: string,
   password: string
 ): Promise<AuthResponse> {
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-  return {
-    user: {
-      id: 'mock-user-1',
-      phoneNumber,
-      fullName,
-      createdAt: new Date().toISOString(),
-    },
-    token: 'mock-token-abc123',
-  }
+  const { data } = await apiClient.post<{ success: boolean; data: AuthResponse }>('/auth/register', {
+    fullName,
+    phoneNumber,
+    password,
+  })
+  return data.data
 }
